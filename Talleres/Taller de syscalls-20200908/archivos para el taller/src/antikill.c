@@ -30,26 +30,23 @@ int main(int argc, char* argv[]) {
 	} else {
 		/* Solo se ejecuta en el Padre */
 		while(1) {
+			ptrace(PTRACE_SYSCALL,child,NULL,NULL);
+			
 			if (wait(&status) < 0) { perror("waitpid"); break; }
 			if (WIFEXITED(status)) break; /* Proceso terminado */
-			
-			ptrace(PTRACE_CONT,child,NULL,NULL);
-			
+
 			int sysno = ptrace(PTRACE_PEEKUSER, child, 8 * ORIG_RAX, NULL);
-			printf("HOLA");
-			// sysno = ptrace(PTRACE_PEEKUSER, child, 8 * ORIG_RAX, NULL);
-			ptrace(PTRACE_POKEUSER, child, 8 * ORIG_RAX, 2);
 			printf ("%d\n",sysno);
 			if (sysno == SIGKILL){
 				//Evitar el kill del hijo
-				
+				//ptrace(PTRACE_POKEUSER, child, 8 * ORIG_RAX, 2);
 				//Matar al hijo
 				ptrace(PTRACE_KILL, child, NULL,NULL);
 				printf("MATASTE AL HIJO\n");
-				
+				exit(0);
 			}
 		}
-		ptrace(PTRACE_DETACH,child,NULL,NULL);
+		if (kill(child, 0)==0) ptrace(PTRACE_DETACH,child,NULL,NULL);
 	}
 	return 0;
 }
