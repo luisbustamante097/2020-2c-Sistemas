@@ -37,9 +37,16 @@ int main(int argc, char **argv){
 	name.sin_port = htons(PORT);
 
 	//COMPLETAR: conectar el socket
-
+	if (connect(s,(const struct sockaddr*) &name, sizeof(name)) < 0) {
+		perror("connect");
+		return 1;
+	};
 
 	//COMPLETAR: Recibir mensaje de bienvenida y ponerlo en bufrecv
+	if(recv(s, bufrecv, sizeof(bufrecv), 0) > MSGLEN+1){
+		perror("welcome_msg");
+		return 1;
+	} 
 
 	printf("Bienvenida: %s\n",bufrecv);
 
@@ -49,15 +56,47 @@ int main(int argc, char **argv){
 		if ((w = getline(&bufsend, &bufsendsiz, stdin)) == -1) {
 			if (!feof(stdin))
 				perror("getline");
+
+			printf("getline");
 			break;
 		}
 		//Nos fijamos si era ENDMSG para cortar la ejecucion
 		if (strncmp(bufsend, ENDMSG, w) == 0){
+			printf("----Salimos por chau\n");
 			break;
 		}
 		//COMPLETAR: Enviar el mensaje
-
-		//COMPLETAR: ecibir mensajes hasta que envie  CMDSE
+		if (send(s, bufsend, bufsendsiz, 0) < 0) {
+			perror("send");
+			return 1;
+		}
+		
+		while(1){
+			//COMPLETAR: Recibir mensajes hasta que envie  CMDSE
+			
+			//LIMPIAMOS EL BUFFER
+			for (int i = 0; i < MSGLEN; i++)
+			{
+				bufrecv[i]=0;
+			}
+			
+			if(recv(s, bufrecv, MSGLEN, 0) < 0){
+				perror("server_msg");
+				return 1;
+			}
+			//IMPRIMIMOS el mensaje del servidor
+			// write(1,bufrecv,sizeof(bufrecv));
+			printf("%s\n",bufrecv);
+			
+			//SALIMOS si recibimos CMDSEP
+			if (strncmp(bufrecv, CMDSEP, MSGLEN) == 0){
+				printf("----Salimos por CMDSEP\n");
+				break;
+			}
+		
+		}
+		
+		//
 	}
 
 	free(bufsend);
