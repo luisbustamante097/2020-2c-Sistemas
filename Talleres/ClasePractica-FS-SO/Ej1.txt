@@ -1,0 +1,64 @@
+
+
+// Ext2FSSuperblock (Superbloque)
+// Ext2FSBlockGroupDescriptor (Descriptor de Gropo de bloques)
+// Ext2FSInode (Inodo)
+// Ext2FSDirEntry (Entrada de Directorio)
+
+/*
+* int get_block_address(inodo, número_ de_bloque): Dado el número de inodo y el número de bloque, devuelve la dirección en disco del bloque.
+    
+* Ext2FSInode * load_inode(numero_de_inodo): Dado el número de inodo, lo carga en memoria.
+
+* Ext2FSInode * get_file_inode_from_dir_inode(inodo del directorio,nombre del archivo): Dado un inodo de un directorio, y el nombre de un archivo, devuelve el inodo correspondiente a ese archivo.
+
+* read_block: Lee un bloque de disco.
+
+* superblock: Devuelve el superbloque.
+
+* block_group: Devuelve el descriptor del grupo de bloques.
+
+* blockgroup_for_inode: Número del grupo de bloques del Inodo.
+
+* blockgroup_inode_index: Offset dentro de la tabla de Inodos, para el inodo.
+*/
+
+
+// Obtenemos el tamaño de bloque
+Ext2FSSuperblock sb = superblock();
+int tam_bloque = sb.block_size();
+
+//Buscamos inodo root
+Ext2FSInode * root = load_inode(2);
+//Buscamos inodo home
+Ext2FSInode * home = get_file_inode_from_dir_inode(root, "home");
+//Buscamos inodo ejemplo.txt
+Ext2FSInode * archivo = get_file_inode_from_dir_inode(home, "ejemplo.txt");
+
+//Calcular cantidad de bloques para 10000 Bytes
+int bloque_pos10000 = 10000 / tam_bloque;
+int bloque_off10000 = 10000 % tam_bloque;
+
+int bloque_buscado = 0;
+
+int cant_indirecto = tam_bloque / ptr_size();
+//Nos movemos a la posicion 10000 del archivo
+if (bloque_pos10000 < 12) {
+    bloque_buscado = archivo->ptr[bloque_pos10000];
+}else if (bloque_pos10000 < 12 + cant_indirecto){
+    bloque_buscado = archivo->ind_simple(bloque_pos10000);
+}else if (bloque_pos10000 < 12 + cant_indirecto + cant_indirecto^2){
+    bloque_buscado = archivo->ind_doble(bloque_pos10000);
+}else if (bloque_pos10000 < 12 + cant_indirecto + cant_indirecto^2 + cant_indirecto^3){
+    bloque_buscado = archivo->ind_triple(bloque_pos10000);
+}
+//Imprimimos 100 char
+char * bloque = get_block_address(archivo, bloque_buscado);
+for i=0 to 100 {
+    if se pasa del bloque{break;}
+    printf(bloque[bloque_off10000 + i]);
+}
+como i <100 entonces 
+    char * bloque = get_block_address(archivo, bloque_buscado + 1);
+    for i hasta 100
+    printf(bloque[bloque_off10000 + i]);
