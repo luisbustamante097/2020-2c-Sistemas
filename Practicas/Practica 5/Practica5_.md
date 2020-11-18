@@ -1,4 +1,4 @@
----
+<!-- ---
 output:
     pdf_document: {highlight: zenburn}
 header-includes:
@@ -8,7 +8,7 @@ geometry: margin=2cm
 html:
     highlight: tango
     toc: true
----  
+---   -->
   
   
   
@@ -16,10 +16,11 @@ Tabla de contenidos
 ===
   
   
-- [Ejercicio 1](#ejercicio-1 )
-- [Ejercicio 2](#ejercicio-2 )
-- [Ejercicio 3](#ejercicio-3 )
-- [Ejercicio 4](#ejercicio-4 )
+- [Tabla de contenidos](#tabla-de-contenidos)
+- [Ejercicio 1](#ejercicio-1)
+- [Ejercicio 2](#ejercicio-2)
+- [Ejercicio 3](#ejercicio-3)
+- [Ejercicio 4](#ejercicio-4)
   
 #  Ejercicio 1 
   
@@ -84,18 +85,18 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
 1. 
 - Si tiene dos sectores por bloque significa que el disco de 16GB esta granularizado en bloques de 2KB, por lo que la cantidad de bloques en 16GB es igual a 
   
-  <p align="center"><img src="https://latex.codecogs.com/png.latex?&#x5C;frac{16GB}{2KB}%20=%20&#x5C;frac{16*(2^{30})B}{2*(2^{10})B}%20=%208%20*%20(2^{20})&#x5C;%20bloques."/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/png.latex?\frac{16GB}{2KB}%20=%20\frac{16*(2^{30})B}{2*(2^{10})B}%20=%208%20*%20(2^{20})\%20bloques."/></p>  
   
   
   Y como los identificadores de bloque son de 24 bits = 3 Bytes, entonces:
   
-  <p align="center"><img src="https://latex.codecogs.com/png.latex?8%20*%20(2^{20})&#x5C;%20bloques%20*%203%20&#x5C;frac{B}{bloques}%20=%2024*(2^{20})%20B%20=%2024%20MB"/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/png.latex?8%20*%20(2^{20})\%20bloques%20*%203%20\frac{B}{bloques}%20=%2024*(2^{20})%20B%20=%2024%20MB"/></p>  
   
   
   Por lo tanto la FAT ocupara **24 MB**
   
 - La tabla de archivos se calculara de forma similar con la cantidad de bloques pero con 16 bits = 2 Bytes representando a cada bloque:
-  <p align="center"><img src="https://latex.codecogs.com/png.latex?8%20*%20(2^{20})&#x5C;%20bloques%20*%202%20&#x5C;frac{B}{bloques}%20=%2016*(2^{20})%20B%20=%2016%20MB"/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/png.latex?8%20*%20(2^{20})\%20bloques%20*%202%20\frac{B}{bloques}%20=%2016*(2^{20})%20B%20=%2016%20MB"/></p>  
   
   
   Por lo tanto la tabla de hashes tiene **16 MB**
@@ -110,7 +111,7 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
 Si en promedio tenemos archivos de 1 KB en el disco queremos primero que al menos los identificadores de bloque lleguen a poder referenciar a todos los archivos
   
 Veamos cuantos archivos de 1KB entran en un disco: 
-<p align="center"><img src="https://latex.codecogs.com/png.latex?&#x5C;frac{16GB}{1KB}%20=%20&#x5C;frac{16*2^{30}B}{1*2^{10}B}%20=%2016*2^{20}%20archivos"/></p>  
+<p align="center"><img src="https://latex.codecogs.com/png.latex?\frac{16GB}{1KB}%20=%20\frac{16*2^{30}B}{1*2^{10}B}%20=%2016*2^{20}%20archivos"/></p>  
  por lo que debo poder referenciar a **casi** todos ellos (ya que era solo el promedio 1KB y ademas debo contar que va a haber un gasto de espacio en la estructura del FS).
   
 - Con 8 bits puedo referencia hasta <img src="https://latex.codecogs.com/png.latex?2^{8}"/> archivos, por lo que no me sirve
@@ -131,11 +132,11 @@ Para la tabla de hash podriamos a apuntar a las mismas especificaciones de la FA
 En este caso ahi que comenzar el razonamiento al reves, para los bloques podemos utilizar la mayor cantidad de sectores en un bloque ya que sabemos que los archivos son bastante grandes, y ademas eso minimiza la cantidad de referencias en la FAT. Por lo tanto necesitamos **8 sectores por bloque**.
   
 Ya que entonces tendriamos un almacenamiento granularizado en bloques de 8KB tenemos que hay:
-<p align="center"><img src="https://latex.codecogs.com/png.latex?&#x5C;frac{16GB}{&#x5C;frac{8KB}{bloque}}%20=%20&#x5C;frac{16*2^{30}}{8*2^{10}}%20=%202*%202^{20}%20bloques"/></p>  
+<p align="center"><img src="https://latex.codecogs.com/png.latex?\frac{16GB}{\frac{8KB}{bloque}}%20=%20\frac{16*2^{30}}{8*2^{10}}%20=%202*%202^{20}%20bloques"/></p>  
  exactamente en el disco. Por lo que necesitamos al menos **24 bits para identificar** cada bloque del disco.
   
 En cuanto el tamaño de hash hay que tener en cuenta que cada hash apunta al comienzo de un archivo, entonces con archivos de 16MB podriamos almacenar:
-<p align="center"><img src="https://latex.codecogs.com/png.latex?&#x5C;frac{16GB}{16MB}%20=%20&#x5C;frac{16*2^{30}B}{16*2^{20}B}%20=%202^{10}%20archivos"/></p>  
+<p align="center"><img src="https://latex.codecogs.com/png.latex?\frac{16GB}{16MB}%20=%20\frac{16*2^{30}B}{16*2^{20}B}%20=%202^{10}%20archivos"/></p>  
   
   
 Por lo tanto necesitamos al menos **16 bits de hash**, para poder referenciar a todos esos archivos.
