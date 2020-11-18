@@ -83,7 +83,7 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
 
   Por lo tanto la FAT ocupara **24 MB**
 
-- La tabla de archivos se calculara de forma similar con la cantidad de bloques pero con 16 bytes = 2 Bytes representando a cada bloque:
+- La tabla de archivos se calculara de forma similar con la cantidad de bloques pero con 16 bits = 2 Bytes representando a cada bloque:
   $$ 8 * (2^{20})\ bloques * 2 \frac{B}{bloques} = 16*(2^{20}) B = 16 MB $$
   
   Por lo tanto la tabla de hashes tiene **16 MB**
@@ -94,4 +94,34 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
   de espacio libre para el resto de los archivos.
 
 2. 
-- 
+Si en promedio tenemos archivos de 1 KB en el disco queremos primero que al menos los identificadores de bloque lleguen a poder referenciar a todos los archivos
+
+Veamos cuantos archivos de 1KB entran en un disco: 
+$$ \frac{16GB}{1KB} = \frac{16*2^{30}B}{1*2^{10}B} = 16*2^{20} archivos $$ por lo que debo poder referenciar a **casi** todos ellos (ya que era solo el promedio 1KB y ademas debo contar que va a haber un gasto de espacio en la estructura del FS).
+
+- Con 8 bits puedo referencia hasta $2^{8}$ archivos, por lo que no me sirve
+- Con 16 bits puedo referenciar $2^{16}$ archivos, por lo que tampoco me sirve
+- Con 24 bits puedo referenciar $2^{24}$ archivos, lo cual es suficiente para referenciar la cantidad aproximada de archivos y ademas no elijo 32 bits para que ocupen el menor espacio dentro de la FAT.
+
+Me queda ver cual es el tamaño del bloque pero eso es mas trivial ya que se que van a ser archivos de aproximadamente 1KB por lo que debo elegir el menor tamaño de bloque que es 2 sectores por bloque
+
+Por lo que hasta ahora tenemos que la mejor configuracion es: **2 sectores por bloque para identificadores de 24bits**
+
+Para la tabla de hash podriamos a apuntar a las mismas especificaciones de la FAT ya que nos gustaria minimizar los bits que necesita cada hash pero sabemos que en promedio los archivos tienen 1KB y esto implica que cada archivo va a tener en promedio solo 1 bloque, y como la tabla de hash debe referenciar al primer bloque de cada archivo vamos a terminar teniendo una tabla de hash que deba referenciar a casi todos los bloques. por lo que necesitaremos una **hashes de 24bits**
+
+<!-- Y con esto tendriamos un espacio libre de 
+$$ 16 GB - R*\frac{3B}{bloque} - R*\frac{3B}{bloque} = 16  - 48 MB = 15  + 976 MB$$ 
+con $R = 8 * (2^{20})\ bloques$. -->
+
+3.
+
+En este caso ahi que comenzar el razonamiento al reves, para los bloques podemos utilizar la mayor cantidad de sectores en un bloque ya que sabemos que los archivos son bastante grandes, y ademas eso minimiza la cantidad de referencias en la FAT. Por lo tanto necesitamos **8 sectores por bloque**.
+
+Ya que entonces tendriamos un almacenamiento granularizado en bloques de 8KB tenemos que hay:
+$$ \frac{16GB}{\frac{8KB}{bloque}} = \frac{16*2^{30}}{8*2^{10}} = 2* 2^{20} bloques$$ exactamente en el disco. Por lo que necesitamos al menos **24 bits para identificar** cada bloque del disco.
+
+En cuanto el tamaño de hash hay que tener en cuenta que cada hash apunta al comienzo de un archivo, entonces con archivos de 16MB podriamos almacenar:
+$$ \frac{16GB}{16MB} = \frac{16*2^{30}B}{16*2^{20}B} = 2^{10} archivos $$
+
+Por lo tanto necesitamos al menos **16 bits de hash**, para poder referenciar a todos esos archivos.
+
