@@ -16,10 +16,11 @@ Tabla de contenidos
 ===
   
   
-- [Ejercicio 1](#ejercicio-1 )
-- [Ejercicio 2](#ejercicio-2 )
-- [Ejercicio 3](#ejercicio-3 )
-- [Ejercicio 4](#ejercicio-4 )
+- [Tabla de contenidos](#tabla-de-contenidos)
+- [Ejercicio 1](#ejercicio-1)
+- [Ejercicio 2](#ejercicio-2)
+- [Ejercicio 3](#ejercicio-3)
+- [Ejercicio 4](#ejercicio-4)
   
 #  Ejercicio 1 
   
@@ -84,18 +85,18 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
 1. 
 - Si tiene dos sectores por bloque significa que el disco de 16GB esta granularizado en bloques de 2KB, por lo que la cantidad de bloques en 16GB es igual a 
   
-  <p align="center"><img src="https://latex.codecogs.com/svg.latex?&#x5C;frac{16GB}{2KB}%20=%20&#x5C;frac{16*(2^{30})B}{2*(2^{10})B}%20=%208%20*%20(2^{20})&#x5C;%20bloques."/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/svg.latex?\frac{16GB}{2KB}%20=%20\frac{16*(2^{30})B}{2*(2^{10})B}%20=%208%20*%20(2^{20})\%20bloques."/></p>  
   
   
   Y como los identificadores de bloque son de 24 bits = 3 Bytes, entonces:
   
-  <p align="center"><img src="https://latex.codecogs.com/svg.latex?8%20*%20(2^{20})&#x5C;%20bloques%20*%203%20&#x5C;frac{B}{bloques}%20=%2024*(2^{20})%20B%20=%2024%20MB"/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/svg.latex?8%20*%20(2^{20})\%20bloques%20*%203%20\frac{B}{bloques}%20=%2024*(2^{20})%20B%20=%2024%20MB"/></p>  
   
   
   Por lo tanto la FAT ocupara **24 MB**
   
 - La tabla de archivos se calculara de forma similar con la cantidad de bloques pero con 16 bytes = 2 Bytes representando a cada bloque:
-  <p align="center"><img src="https://latex.codecogs.com/svg.latex?8%20*%20(2^{20})&#x5C;%20bloques%20*%202%20&#x5C;frac{B}{bloques}%20=%2016*(2^{20})%20B%20=%2016%20MB"/></p>  
+  <p align="center"><img src="https://latex.codecogs.com/svg.latex?8%20*%20(2^{20})\%20bloques%20*%202%20\frac{B}{bloques}%20=%2016*(2^{20})%20B%20=%2016%20MB"/></p>  
   
   
   Por lo tanto la tabla de hashes tiene **16 MB**
