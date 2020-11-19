@@ -8,19 +8,19 @@ Tabla de contenidos
   
 - [Tabla de contenidos](#tabla-de-contenidos)
 - [Parte 1 – Sistemas de archivos](#parte-1--sistemas-de-archivos)
-  - [Ejercicio 1](#ejercicio-1)
-  - [Ejercicio 2](#ejercicio-2)
-  - [Ejercicio 3](#ejercicio-3)
-  - [Ejercicio 4](#ejercicio-4)
+  - [Ejercicio 1 :star:](#ejercicio-1-star)
+  - [Ejercicio 2 :star:](#ejercicio-2-star)
+  - [Ejercicio 3 :star:](#ejercicio-3-star)
+  - [Ejercicio 4 :star:](#ejercicio-4-star)
 - [Parte 2 – Redundancia de disco y resguardo de datos](#parte-2--redundancia-de-disco-y-resguardo-de-datos)
-  - [Ejercicio 5](#ejercicio-5)
-  - [Ejercicio 6](#ejercicio-6)
-  - [Ejercicio 7](#ejercicio-7)
-  - [Ejercicio 8](#ejercicio-8)
+  - [Ejercicio 5 :star:](#ejercicio-5-star)
+  - [Ejercicio 6 :star:](#ejercicio-6-star)
+  - [Ejercicio 7 :star:](#ejercicio-7-star)
+  - [Ejercicio 8 :star:](#ejercicio-8-star)
   
 #  Parte 1 – Sistemas de archivos
   
-##  Ejercicio 1 
+##  Ejercicio 1 :star:
   
 - Suponer una computadora cuyo disco se accede sin memoria cache y un sistema de archivos FAT. Además, en este sistema, la FAT no queda almacenada en la memoria (recordar que lo normal es que la FAT se cargue en memoria). ¿Cuántos accesos al disco son necesarios para llegar hasta el último bloque de un archivo de N bloques?
   
@@ -30,7 +30,7 @@ Ya que la FAT no esta en memoria significa que se encuentra almacenada en disco,
 Por lo que obtendriamos un total de N+1 accesos al disco
   
   
-##  Ejercicio 2
+##  Ejercicio 2 :star:
   
 - Suponer que se cuenta con un sistema de archivos basado en inodos y bloques de 4 KB
   1. Si se tiene un archivo de 40 KB, ¿cuántos bloques es necesario leer para procesarlo completamente?
@@ -41,7 +41,7 @@ Por lo que obtendriamos un total de N+1 accesos al disco
 1. Al tener 12 bloques directos en el inodo, esto le permite tener hasta 12*4KB=48KB directos. Por lo que para un archivo de 40KB es necesario leer solo 10 bloques (10 bloques = 40KB) del disco (suponiendo que el inodo del archivo ya esta en memoria).
 2. Seguramente un archivo de 80KB necesite de la indireccion simple del inodo, lo cual conduce a tener que leer 20 bloques (20 bloques = 80KB) mas un bloque extra que seria el bloque de indireccion. Por lo tanto necesita leer 21 bloques en total.
   
-##  Ejercicio 3
+##  Ejercicio 3 :star:
   
 - Una compañía que fabrica discos rígidos decide, como parte de cierta estrategia comercial, emprender la creación de un nuevo *filesystem*. Durante la fase de diseño preliminar los ingenieros a cargo del proyecto discuten acaloradamente la conveniencia de adoptar un enfoque inspirado en FAT o la de uno basado en inodos. 
 Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de los siguientes requerimientos:
@@ -64,7 +64,7 @@ Indicar cuál de las dos opciones recomendaría, y por qué, para cada uno de lo
 4. Es importante que la cantidad de memoria principal ocupada por estructuras del filesystem en un instante dado sea (a lo sumo) lineal en la cantidad de archivos abiertos en ese momento.
    - Inodos: ya que FAT mantiene toda la FAT cargada en memoria desde el comienzo al final. En cambio con Inodos se levanta solo los inodos que se requieren.
   
-##  Ejercicio 4
+##  Ejercicio 4 :star:
   
 - Se tiene un disco rígido de 16 GB de espacio con sectores de 1 KB. Se desea dar formato al disco usando un sistema de archivos de uso específico llamado *HashFS*, basado en FAT. La idea es que no existen directorios ni archivos. Dado un path, se calcula el hash del nombre y éste indica cuál es el archivo buscado. En resumen, este sistema de archivo cuentas con dos tablas:
   - Una única FAT que guarda las entradas correspondientes al próximo bloque, indicando el final de un archivo cuando estos valores coinciden.
@@ -144,13 +144,13 @@ Por lo tanto necesitamos al menos **16 bits de hash**, para poder referenciar a 
 #  Parte 2 – Redundancia de disco y resguardo de datos
   
   
-##  Ejercicio 5
+##  Ejercicio 5 :star:
   
 - ¿Podría en algún contexto un esquema de organización de RAID nivel 1 proporcionar un mejor rendimiento para las solicitudes de lectura que un esquema RAID nivel 0?
   
 En general tienen un rendimiento muy similar RAID 0 y RAID 1, pero RAID 1 tendra una mejor disponibilidad cuando se trata de dos computadoras que requieren de hacer una lectura, ya que ambas podran hacerlo simultaneamente (mientras solo sea lectura). Aca RAID 0 se ve desventajada ya que no podra tener la misma ventaja ya que la computadora que llegue ultima debera esperar.
   
-##  Ejercicio 6
+##  Ejercicio 6 :star:
   
 - Considerar un esquema de organización RAID nivel 5 compuesto por 5 discos; es decir, que cada 4 bloques almacenados en 4 discos, el disco restante almacena la información de paridad. ¿A cuántos bloques hay que acceder para llevar a cabo las siguientes operaciones?
   1. Una escritura de un bloque de datos
@@ -178,7 +178,7 @@ La estructura del disco es la siguiente:
   
 2. Repitiendo la misma formula del punto 1 se tiene 4 accesos por cada bloque que se quiere escribir, por lo que la formula dictaria que se necesitan de 28 accesos - 2 (o 4) accesos de lectura y escritura ya que si se hizo la modificacion de 7 bloques contiguos, al menos uno de ellos es solo un bloque de paridad. Por lo tanto tendriamos **26 o 24 accesos** segun el caso.
   
-##  Ejercicio 7
+##  Ejercicio 7 :star:
   
 - Una estrategia de copias de seguridad (“backup”) en cintas utiliza 5 cintas que va rotando. Responder y justificar cuántas cintas puede llegar a ser necesario utilizar para restaurar un archivo en cada uno de los siguientes casos:
   1. Total.
@@ -187,7 +187,7 @@ La estructura del disco es la siguiente:
   
 ???
   
-##  Ejercicio 8
+##  Ejercicio 8 :star:
   
 - Un sistema cuenta con almacenamiento basado en RAID 5. Responda verdadero o falso justificando:
   1. Realizar copias de seguridad a cinta es innecesario ya que no incrementa el nivel de protección.
