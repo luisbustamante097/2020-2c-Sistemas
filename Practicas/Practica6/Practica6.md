@@ -76,12 +76,88 @@ Para todos los ejercicios de esta sección que requieran escribir código deber�
 - El cronómetro reinicia su contador escribiendo la constante `CHRONO_RESET` en el registro de control.
 - Escribir un driver para manejar este cronómetro. Este driver debe devolver el tiempo actual cuando invoca la operación `read()`. Si el usuario invoca la operación `write()`, el cronómetro debe reiniciarse.
 
+```c
+int driver_init(){}
+int driver_open(){}
+int driver_close(){}
+int driver_read(int *data){
+    if (*data = IN(CHRONO_CURRENT_TIME)){
+       return IO_OK; 
+    };
+    return IO_ERROR;
+}
+int driver_write(int *data){
+    if (OUT(CHRONO_CTRL, CHRONO_RESET)){
+       return IO_OK; 
+    };
+    return IO_ERROR;
+}
+int driver_remove(){}
+```
 
+## Ejercicio 7
+- Una tecla posee un único registro de E/S :`BTN_STATUS`. Solo el bit menos significativo y el segundo bit menos significativo son de interés:
+    - `BTN_STATUS_0`: vale 0 si la tecla no fue pulsada, 1 si fue pulsada.
+    - `BTN_STATUS_1`: escribir 0 en este bit para limpiar la memoria de la tecla.
+- Escribir un driver para manejar este dispositivo de E/S. El driver debe retornar la constante `BTN_PRESSED` cuando se presiona la tecla. Usar *busy waiting*.
 
+```c
+int driver_init(){}
+int driver_open(){}
+int driver_close(){}
+int driver_read(int *data){
+    int aux = IN(BTN_STATUS);
+    aux_0 = (aux << 8*4-1) >> 8*4;
+    while (!(aux_0 == 1)){};
+    OUT(BTN_STATUS, BTN_STATUS || 0x2)
+    return BTN_PRESSED;
+}
+int driver_write(int *data){}
+int driver_remove(){}
+```
 
+## Ejercicio 8 :star:
+- Reescribir el driver del ejercicio anterior para que utilice interrupciones en lugar de *busy waiting*. Para ello, aprovechar que la tecla ha sido conectada a la línea de interrupción número 7.
+- Para indicar al dispositivo que debe efectuar una nueva interrupción al detectar una nueva pulsación de la tecla, debe guardar la constante `BTN_INT` en el registro de la tecla.
+Ayuda: usar *semáforos*.
 
+```c
+#define IRQ_7 7
 
+void *IRQ_handler (){
+    //Escribo en el registro que la tecla fue presionada
+    OUT(BTN_STATUS, BTN_STATUS || 0x2)
+    //Libero el mutex
+    mutex.unlock();
+}
 
+int driver_init(){
+    // Inicializo el semaforo
+    std::semaphore mutex;
+}
+int driver_open(){
+    // Hago el pedido del puerto 7 de IRQ
+    if (request_irq(IRQ_7, IRQ_handler)==IRQ_ERROR){
+        return -1;
+    }
+    return 0;
+
+}
+int driver_close(){
+    // Cierro el IRQ 7 
+    free_irq(IRQ_7);
+    return 0;
+}
+int driver_read(int *data){
+    // Le indico al driver que active la interrupcion
+    OUT(BTN_STATUS, BTN_INT)
+    // Agrego un mutex que solo se pasara si el handler fue activado
+    mutex.lock();
+    return BTN_PRESSED;
+}
+int driver_write(int *data){}
+int driver_remove(){}
+```
 
 
 
@@ -109,7 +185,7 @@ Para ser cargado como un driver válido por el sistema operativo, el driver debe
 |---|---|
 |`int driver_init()`|Durante la carga del SO.
 |`int driver_open()`|Al solicitarse un open.|
-|`int driver_close()`|Al solicitarse unclose.|
+|`int driver_close()`|Al solicitarse un close.|
 |`int driver_read(int *data)`|Al solicitarse un read.|
 |`int driver_write(int *data)`|Al solicitarse un write.
 |`int driver_remove()`|Durante la descarga del SO.|
