@@ -7,7 +7,11 @@ Tabla de Contenidos
 - Esperar la finalización de una operación de E/S utilizando polling desperdicia muchos ciclos de reloj (busy waiting). Sin embargo, si el dispositivo está listo para la operación, esta técnica puede ser mucho más eficiente que una estrategia basada en interrupciones.
 Describir una estrategia híbrida, que combine polling e interrupciones para acceder a dispositivos de E/S. Mostrar tres escenarios, uno donde polling sea el más conveniente, otro donde interrupciones sea el método de acceso más favorable y un tercero donde convenga utilizar la estrategia híbrida.
 
-Un dispositivo como un mouse puede incorporar un mecanismo hibrido de polling e interrupciones, ya que mientras este en uso debe enviar la informacion del movimiento mediante polling, luego cuando deje de detectar movimiento entre en un estado de reposo donde deje de hacer polling para pasar a ser un dispositivo que se vuelva a activar por una interrupcion al momento de que se detecte un nuevo movimiento. 
+El caso de Polling es muy sencillo ya que se debe usar cuando se trata de dispositivos que tienen que mandar una serie de datos continuos sin parar, por ejemplo una camara web.
+
+Para el caso de interrupciones es de esperar que sea utilizado por dispositivos los cuales no tengan una espera sincronica, por ejemplo el teclado, ya que la computadora no puede saber cuando se presionara nuevamente una tecla.
+
+Un dispositivo como un mouse podria incorporar un mecanismo hibrido de polling e interrupciones, ya que mientras este en uso debe enviar la informacion del movimiento mediante polling, luego cuando deje de detectar movimiento entre en un estado de reposo donde deje de hacer polling para pasar a ser un dispositivo que se vuelva a activar por una interrupcion al momento de que se detecte un nuevo movimiento. 
 
 ## Ejercicio 2 :star:
 - Un sistema informático que incorpora DMA permite una implementación eficiente de la multiprogramación. Suponga que un proceso en promedio usa sólo el 23% de su tiempo la CPU y el resto está en entrada y salida (E/S) y suponiendo que toda operación de E/S se realiza por DMA. Sabiendoque se puede demostrar que $U_{CPU}(n) = 1-U_{E/S}(1)^n$ y que $U_{DMA}(n) = 1 - U_{CPU}(1)^n$, donde $n$ es la cantidad de procesos, estime qué utilización del procesador y del canal de DMA se logra, si se tiene un grado de multiprogramación de 6 procesos.
@@ -61,7 +65,7 @@ Para todos los ejercicios de esta sección que requieran escribir código deber�
 
 1. Verdadero: Ya que es un algoritmo como cualquier otro.
 2. Falso: IDEM
-3. Falso: Es el intermediario entre el SO y el dispositivo.
+3. Verdadero: Es un modulo del kerner que funciona como intermediario entre el SO y el dispositivo.
 4. Falso: No es una aplicacion de usuario ya que trabaja a nivel root y los usuarios no pueden cambiarlo.
 5. Falso: Puede funcionar en base a interrupciones pero no es un gestor de estas.
 6. Falso: Un driver de windows no funciona en Linux por ejemplo dado que tambien tiene que saber a que SO le esta hablando.
@@ -141,7 +145,6 @@ int driver_open(){
         return -1;
     }
     return 0;
-
 }
 int driver_close(){
     // Cierro el IRQ 7 
@@ -159,10 +162,31 @@ int driver_write(int *data){}
 int driver_remove(){}
 ```
 
+## Ejercicio 9
+- Indicar las acciones que debe tomar el administrador de E/S:
+    1. cuando se efectúa un `open`.
+    2. cuando se efectúa un `write`.
+
+## Ejercicio 10
+¿Cuál debería ser el nivel de acceso para las syscalls `IN` y `OUT`? ¿Por qué?
 
 
-
-
+## Ejercicio 11 :star:
+- Se desea implementar el *driver* de una controladora de una vieja unidad de discos ópticos que requiere controlar manualmente el motor de la misma. Esta controladora posee 3 registros de lectura y 3 de escritura. Los registros de escritura son:
+    - `DOR_IO`: enciende (escribiendo 1) o apaga (escribiendo 0) el motor de la unidad.
+    - `ARM`: número de pista a seleccionar.
+    - `SEEK_SECTOR`: número de sector a seleccionar dentro de la pista.
+- Los registros de lectura son:
+    - `DOR_STATUS`: contiene el valor 0 si el motor está apagado (o en proceso de apagarse), 1 si está encendido. Un valor 1 en este registro no garantiza que la velocidad rotacional del motor sea lasuficiente como para realizar exitosamente una operación en el disco.
+    - `ARM_STATUS`: contiene el valor 0 si el brazo se está moviendo, 1 si se ubica en la pista indicadaen el registro `ARM`.
+    - `DATA_READY`: contiene el valor 1 cuando el dato ya fue enviado.
+- Además, se cuenta con las siguientes funciones auxiliares (ya implementadas):
+    - `int cantidad_sectores_por_pista()`: Devuelve la cantidad de sectores por cada pista del disco. El sector 0 es el primer sector de la pista.
+    - `void escribir_datos(void *src)`: Escribe los datos apuntados por `src` en el último sectorseleccionado.
+    - `void sleep(int ms)`: Espera durante `ms` milisegundos.
+- Antes de escribir un sector, el *driver* debe asegurarse que el motor se encuentre encendido. Si no lo está, debe encenderlo, y para garantizar que la velocidad rotacional sea suficiente, debe esperar al menos 50 ms antes de realizar cualquier operación. A su vez, para conservar energía, una vez que finalice una operación en el disco, el motor debe ser apagado. El proceso de apagado demora como máximo 200 ms, tiempo antes del cual no es posible comenzar nuevas operaciones. 
+    1. Implementar la función `write(int sector,void *data)` del *driver*, que escriba los datos apuntados por data en el sector en formato LBA indicado por sector. Para esta primera implementación,no usar interrupciones.
+    2. Modificar la función del inciso anterior utilizando interrupciones. La controladora del disco realiza una interrupción en el `IRQ 6` cada vez que los registros `ARM_STATUS` o `DATA_READY` toman el valor 1. Además, el sistema ofrece un *timer* que realiza una interrupción en el `IRQ 7` una vez cada 50ms. Para este inciso, no se puede utilizar la función `sleep`.
 
 
 
@@ -195,5 +219,5 @@ Para la programación de un driver, se dispone de las siguientes syscalls:
 |------------------|---|
 |`void OUT(int IO_address, int data)`| Escribe data en el registro de E/S.
 |`int IN(int IO_address)`|Devuelve el valor almacenado en el registro de E/S.|
-|`int request_irq(int irq, void *handler)`| Permite asociar el procedimiento handler a la interrupción IRQ. Devuelve `IRQ_ERROR` si ya está asociada a otro handler.
+|`int request_irq(int irq, void *handler)` | Permite asociar el procedimiento handler a la interrupción IRQ. Devuelve `IRQ_ERROR` si ya está asociada a otro handler.
 |`int free_irq(int irq)`|Libera la interrupción IRQ del procedimiento asociado.|
