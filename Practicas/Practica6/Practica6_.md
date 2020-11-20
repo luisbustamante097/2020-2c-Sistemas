@@ -2,21 +2,20 @@ Tabla de Contenidos
 ===================
   
   
-- [Tabla de Contenidos](#tabla-de-contenidos)
-- [Parte 1 – Métodos de acceso](#parte-1--métodos-de-acceso)
-  - [Ejercicio 1 :star:](#ejercicio-1-star)
-  - [Ejercicio 2 :star:](#ejercicio-2-star)
-  - [Ejercicio 3 :star:](#ejercicio-3-star)
-  - [Ejercicio 4](#ejercicio-4)
-- [Parte 2 – Interfaz de E/S](#parte-2--interfaz-de-es)
-  - [Ejercicio 5 :star:](#ejercicio-5-star)
-  - [Ejercicio 6](#ejercicio-6)
-  - [Ejercicio 7](#ejercicio-7)
-  - [Ejercicio 8 :star:](#ejercicio-8-star)
-  - [Ejercicio 9](#ejercicio-9)
-  - [Ejercicio 10](#ejercicio-10)
-  - [Ejercicio 11 :star:](#ejercicio-11-star)
-- [Parte 3 – API para escritura de drivers](#parte-3--api-para-escritura-de-drivers)
+- [Parte 1 – Métodos de acceso](#parte-1-métodos-de-acceso )
+  - [Ejercicio 1 :star:](#ejercicio-1-star )
+  - [Ejercicio 2 :star:](#ejercicio-2-star )
+  - [Ejercicio 3 :star:](#ejercicio-3-star )
+  - [Ejercicio 4](#ejercicio-4 )
+- [Parte 2 – Interfaz de E/S](#parte-2-interfaz-de-es )
+  - [Ejercicio 5 :star:](#ejercicio-5-star )
+  - [Ejercicio 6](#ejercicio-6 )
+  - [Ejercicio 7](#ejercicio-7 )
+  - [Ejercicio 8 :star:](#ejercicio-8-star )
+  - [Ejercicio 9 (No hice)](#ejercicio-9-no-hice )
+  - [Ejercicio 10](#ejercicio-10 )
+  - [Ejercicio 11 :star:](#ejercicio-11-star )
+- [Parte 3 – API para escritura de drivers](#parte-3-api-para-escritura-de-drivers )
   
 #  Parte 1 – Métodos de acceso
   
@@ -136,8 +135,9 @@ int driver_open(){}
 int driver_close(){}
 int driver_read(int *data){
     int aux = IN(BTN_STATUS);
-    aux_0 = (aux << 8*4-1) >> 8*4;
-    while (!(aux_0 == 1)){};
+    do{
+        aux_0 = (aux << 8*4-1) >> 8*4;
+    }while (!(aux_0 == 0));
     OUT(BTN_STATUS, BTN_STATUS || 0x2)
     return BTN_PRESSED;
 }
@@ -155,6 +155,8 @@ Ayuda: usar *semáforos*.
 #define IRQ_7 7
   
 void *IRQ_handler (){
+    // Indico por STATUS que ya fue interrumpido
+    OUT(BTN_STATUS, BTN_INT)
     //Escribo en el registro que la tecla fue presionada
     OUT(BTN_STATUS, BTN_STATUS || 0x2)
     //Libero el mutex
@@ -178,8 +180,7 @@ int driver_close(){
     return 0;
 }
 int driver_read(int *data){
-    // Le indico al driver que active la interrupcion
-    OUT(BTN_STATUS, BTN_INT)
+    // Debo esperar a que la interrupcion se lance
     // Agrego un mutex que solo se pasara si el handler fue activado
     mutex.lock();
     return BTN_PRESSED;
@@ -188,7 +189,7 @@ int driver_write(int *data){}
 int driver_remove(){}
 ```
   
-##  Ejercicio 9
+##  Ejercicio 9 (No hice)
   
 - Indicar las acciones que debe tomar el administrador de E/S:
     1. cuando se efectúa un `open`.
@@ -196,7 +197,9 @@ int driver_remove(){}
   
 ##  Ejercicio 10
   
-¿Cuál debería ser el nivel de acceso para las syscalls `IN` y `OUT`? ¿Por qué?
+- ¿Cuál debería ser el nivel de acceso para las syscalls `IN` y `OUT`? ¿Por qué?
+  
+Ya que mediante estas funciones se obtiene/modifica valores de un registro vinculado a un dispositivo, el acceso a estos registros no deberia estar disponible a un usuario, por lo que entonces estas syscalls deben tener nivel de kernel para realizarse.
   
   
 ##  Ejercicio 11 :star:

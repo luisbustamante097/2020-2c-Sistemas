@@ -111,8 +111,9 @@ int driver_open(){}
 int driver_close(){}
 int driver_read(int *data){
     int aux = IN(BTN_STATUS);
-    aux_0 = (aux << 8*4-1) >> 8*4;
-    while (!(aux_0 == 1)){};
+    do{
+        aux_0 = (aux << 8*4-1) >> 8*4;
+    }while (!(aux_0 == 0));
     OUT(BTN_STATUS, BTN_STATUS || 0x2)
     return BTN_PRESSED;
 }
@@ -129,6 +130,8 @@ Ayuda: usar *semáforos*.
 #define IRQ_7 7
 
 void *IRQ_handler (){
+    // Indico por STATUS que ya fue interrumpido
+    OUT(BTN_STATUS, BTN_INT)
     //Escribo en el registro que la tecla fue presionada
     OUT(BTN_STATUS, BTN_STATUS || 0x2)
     //Libero el mutex
@@ -152,8 +155,7 @@ int driver_close(){
     return 0;
 }
 int driver_read(int *data){
-    // Le indico al driver que active la interrupcion
-    OUT(BTN_STATUS, BTN_INT)
+    // Debo esperar a que la interrupcion se lance
     // Agrego un mutex que solo se pasara si el handler fue activado
     mutex.lock();
     return BTN_PRESSED;
@@ -162,13 +164,15 @@ int driver_write(int *data){}
 int driver_remove(){}
 ```
 
-## Ejercicio 9
+## Ejercicio 9 (No hice)
 - Indicar las acciones que debe tomar el administrador de E/S:
     1. cuando se efectúa un `open`.
     2. cuando se efectúa un `write`.
 
 ## Ejercicio 10
-¿Cuál debería ser el nivel de acceso para las syscalls `IN` y `OUT`? ¿Por qué?
+- ¿Cuál debería ser el nivel de acceso para las syscalls `IN` y `OUT`? ¿Por qué?
+
+Ya que mediante estas funciones se obtiene/modifica valores de un registro vinculado a un dispositivo, el acceso a estos registros no deberia estar disponible a un usuario, por lo que entonces estas syscalls deben tener nivel de kernel para realizarse.
 
 
 ## Ejercicio 11 :star:
