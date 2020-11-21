@@ -176,24 +176,139 @@ Ya que mediante estas funciones se obtiene/modifica valores de un registro vincu
 
 
 ## Ejercicio 11 :star:
-- Se desea implementar el *driver* de una controladora de una vieja unidad de discos ópticos que requiere controlar manualmente el motor de la misma. Esta controladora posee 3 registros de lectura y 3 de escritura. Los registros de escritura son:
-    - `DOR_IO`: enciende (escribiendo 1) o apaga (escribiendo 0) el motor de la unidad.
-    - `ARM`: número de pista a seleccionar.
-    - `SEEK_SECTOR`: número de sector a seleccionar dentro de la pista.
-- Los registros de lectura son:
-    - `DOR_STATUS`: contiene el valor 0 si el motor está apagado (o en proceso de apagarse), 1 si está encendido. Un valor 1 en este registro no garantiza que la velocidad rotacional del motor sea lasuficiente como para realizar exitosamente una operación en el disco.
-    - `ARM_STATUS`: contiene el valor 0 si el brazo se está moviendo, 1 si se ubica en la pista indicadaen el registro `ARM`.
-    - `DATA_READY`: contiene el valor 1 cuando el dato ya fue enviado.
-- Además, se cuenta con las siguientes funciones auxiliares (ya implementadas):
-    - `int cantidad_sectores_por_pista()`: Devuelve la cantidad de sectores por cada pista del disco. El sector 0 es el primer sector de la pista.
-    - `void escribir_datos(void *src)`: Escribe los datos apuntados por `src` en el último sectorseleccionado.
-    - `void sleep(int ms)`: Espera durante `ms` milisegundos.
-- Antes de escribir un sector, el *driver* debe asegurarse que el motor se encuentre encendido. Si no lo está, debe encenderlo, y para garantizar que la velocidad rotacional sea suficiente, debe esperar al menos 50 ms antes de realizar cualquier operación. A su vez, para conservar energía, una vez que finalice una operación en el disco, el motor debe ser apagado. El proceso de apagado demora como máximo 200 ms, tiempo antes del cual no es posible comenzar nuevas operaciones. 
-    1. Implementar la función `write(int sector,void *data)` del *driver*, que escriba los datos apuntados por data en el sector en formato LBA indicado por sector. Para esta primera implementación,no usar interrupciones.
-    2. Modificar la función del inciso anterior utilizando interrupciones. La controladora del disco realiza una interrupción en el `IRQ 6` cada vez que los registros `ARM_STATUS` o `DATA_READY` toman el valor 1. Además, el sistema ofrece un *timer* que realiza una interrupción en el `IRQ 7` una vez cada 50ms. Para este inciso, no se puede utilizar la función `sleep`.
+Se desea implementar el *driver* de una controladora de una vieja unidad de discos ópticos que requiere controlar manualmente el motor de la misma. Esta controladora posee 3 registros de lectura y 3 de escritura. Los registros de escritura son:
+  - `DOR_IO`: enciende (escribiendo 1) o apaga (escribiendo 0) el motor de la unidad.
+  - `ARM`: número de pista a seleccionar.
+  - `SEEK_SECTOR`: número de sector a seleccionar dentro de la pista.
 
+Los registros de lectura son:
+  - `DOR_STATUS`: contiene el valor 0 si el motor está apagado (o en proceso de apagarse), 1 si está encendido. Un valor 1 en este registro no garantiza que la velocidad rotacional del motor sea la suficiente como para realizar exitosamente una operación en el disco.
+  - `ARM_STATUS`: contiene el valor 0 si el brazo se está moviendo, 1 si se ubica en la pista indicada en el registro `ARM`.
+  - `DATA_READY`: contiene el valor 1 cuando el dato ya fue enviado.
 
+Además, se cuenta con las siguientes funciones auxiliares (ya implementadas):
+  - `int cantidad_sectores_por_pista()`: Devuelve la cantidad de sectores por cada pista del disco. El sector 0 es el primer sector de la pista.
+  - `void escribir_datos(void *src)`: Escribe los datos apuntados por `src` en el último sector seleccionado.
+  - `void sleep(int ms)`: Espera durante `ms` milisegundos.
+  
+Antes de escribir un sector, el *driver* debe asegurarse que el motor se encuentre encendido. Si no lo está, debe encenderlo, y para garantizar que la velocidad rotacional sea suficiente, debe esperar al menos 50 ms antes de realizar cualquier operación. A su vez, para conservar energía, una vez que finalice una operación en el disco, el motor debe ser apagado. El proceso de apagado demora como máximo 200 ms, tiempo antes del cual no es posible comenzar nuevas operaciones. 
+  1. Implementar la función `write(int sector,void *data)` del *driver*, que escriba los datos apuntados por data en el sector en formato LBA indicado por `sector`. Para esta primera implementación, no usar interrupciones.
+  2. Modificar la función del inciso anterior utilizando interrupciones. La controladora del disco realiza una interrupción en el `IRQ 6` cada vez que los registros `ARM_STATUS` o `DATA_READY` toman el valor 1. Además, el sistema ofrece un *timer* que realiza una interrupción en el `IRQ 7` una vez cada 50ms. Para este inciso, no se puede utilizar la función `sleep`.
 
+```c++
+void write(int sector,void *data){
+    // Verifico que el motor este encendido
+    if (IN(DOR_STATUS) == 0){
+        OUT(DOR_STATUS, 1);
+    }
+    // Espero 50 ms para estabilizar
+    sleep(50);
+    
+    // Comienzo con el proceso de escritura
+    // Calculo a que pista debo moverme
+    int sects_por_pista = cantidad_sectores_por_pista();
+    int pista = (int)floor(sector / sects_por_pista);
+    // Calculo el sector relativo a la pista
+    int sector_pista = sector % sects_por_pista; 
+    // Me muevo a la pista
+    OUT(ARM, pista);
+    // Espero a que el brazo llegue a la pista
+    while(!(IN(ARM_STATUS)==1)){}
+    // Selecciono el sector de la pista correspondiente
+    OUT(SEEK_SECTOR, sector_pista);
+    sleep(50);
+    //Escribo el dato en el sector seleccionado
+    escribir_datos(data);
+    // Espero a que se termine de grabar
+    while(!(IN(DATA_READY)==1)){}
+    
+    // Apago motor ya que termine
+    OUT(DOR_STATUS, 0);
+    // Para apagarse correctamente debo esperar 200ms
+    sleep(200);
+}
+```
+
+```c
+void *handler_ready (){
+    // Doy el paso a quien lo necesite
+    ready.notify();
+}
+
+void *handler_chrono (){
+    // Esta interrupcion ocurre cada 50ms
+    // Por lo que solo quiero usarla cuando sea necesario
+    if (chrono_enabled){
+        chrono.notify();
+    }
+}
+int driver_init(){
+    // Pido los IRQ correspondientes (Parte 2)
+    if (request_irq(6,handler_ready)==IRQ_ERROR){
+        return -1;
+    }
+    if (request_irq(7,handler_chrono)==IRQ_ERROR){
+        return -1;
+    }
+    
+    // Declaro dos semaforos para usar con las IRQs
+    Semaphore ready;
+    Semaphore chrono;
+    std::atomic<bool> chrono_enabled;
+    
+}
+int driver_close(){
+    free_irq(6);
+    free_irq(7);
+}
+void write_INTs(int sector,void *data){
+    // Verifico que el motor este encendido
+    if (IN(DOR_STATUS) == 0){
+        OUT(DOR_STATUS, 1);
+    }
+    chrono_enabled = true;
+    // Espero 50 ms para estabilizar (por IRQ)
+    chrono.wait();
+    // Es buena idea esperar uno mas porque
+    // si no en el mejor caso espere solo 1ms
+    chrono.wait();
+    chrono_enabled = false;
+        
+    // Comienzo con el proceso de escritura
+    // Calculo a que pista debo moverme
+    int sects_por_pista = cantidad_sectores_por_pista();
+    int pista = (int)floor(sector / sects_por_pista);
+    // Calculo el sector relativo a la pista
+    int sector_pista = sector % sects_por_pista; 
+    // Me muevo a la pista
+    OUT(ARM, pista);
+    // Espero a que el brazo llegue a la pista
+    ready.wait();
+    // Selecciono el sector de la pista correspondiente
+    OUT(SEEK_SECTOR, sector_pista);
+    
+    chrono_enabled = true;
+    chrono.wait();
+    chrono.wait();
+    chrono_enabled = false;
+    
+    //Escribo el dato en el sector seleccionado
+    escribir_datos(data);
+    // Espero a que se termine de grabar
+    ready.wait();
+    
+    // Apago motor ya que termine
+    OUT(DOR_STATUS, 0);
+    // Para apagarse correctamente debo esperar 200ms
+    chrono_enabled = true;
+    chrono.wait();
+    chrono.wait();
+    chrono.wait();
+    chrono.wait();
+    chrono.wait();
+    chrono_enabled = false;
+}
+```
 
 
 
