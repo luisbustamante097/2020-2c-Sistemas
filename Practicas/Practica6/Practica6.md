@@ -196,10 +196,10 @@ Antes de escribir un sector, el *driver* debe asegurarse que el motor se encuent
   2. Modificar la función del inciso anterior utilizando interrupciones. La controladora del disco realiza una interrupción en el `IRQ 6` cada vez que los registros `ARM_STATUS` o `DATA_READY` toman el valor 1. Además, el sistema ofrece un *timer* que realiza una interrupción en el `IRQ 7` una vez cada 50ms. Para este inciso, no se puede utilizar la función `sleep`.
 
 ```c++
-void write(int sector,void *data){
+void write(int sector, void *data){
     // Verifico que el motor este encendido
     if (IN(DOR_STATUS) == 0){
-        OUT(DOR_STATUS, 1);
+        OUT(DOR_IO, 1);
     }
     // Espero 50 ms para estabilizar
     sleep(50);
@@ -232,7 +232,11 @@ void write(int sector,void *data){
 ```c
 void *handler_ready (){
     // Doy el paso a quien lo necesite
-    ready.notify();
+    if(ARM_STATUS == 1){
+        ready_arm.notify();
+    }else{
+        ready_data.notify();
+    }
 }
 
 void *handler_chrono (){
@@ -252,7 +256,8 @@ int driver_init(){
     }
     
     // Declaro dos semaforos para usar con las IRQs
-    Semaphore ready;
+    Semaphore ready_arm;
+    Semaphore ready_data;
     Semaphore chrono;
     std::atomic<bool> chrono_enabled;
     
@@ -283,7 +288,7 @@ void write_INTs(int sector,void *data){
     // Me muevo a la pista
     OUT(ARM, pista);
     // Espero a que el brazo llegue a la pista
-    ready.wait();
+    ready_arm.wait();
     // Selecciono el sector de la pista correspondiente
     OUT(SEEK_SECTOR, sector_pista);
     
@@ -295,7 +300,7 @@ void write_INTs(int sector,void *data){
     //Escribo el dato en el sector seleccionado
     escribir_datos(data);
     // Espero a que se termine de grabar
-    ready.wait();
+    ready_data.wait();
     
     // Apago motor ya que termine
     OUT(DOR_STATUS, 0);
